@@ -1,0 +1,7 @@
+.env
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+web/node_modules/

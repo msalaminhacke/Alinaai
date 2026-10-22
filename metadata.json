@@ -1,0 +1,8 @@
+{
+  "name": "Alina",
+  "description": "Real-time voice-to-voice AI friend, companion, and system assistant with live multimodal vision, background services, and smart device actions powered by Gemini Live.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

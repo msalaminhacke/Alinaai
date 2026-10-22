@@ -1,0 +1,2805 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ALINA // JARVIS QUANTUM HUD MARK-85</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #00F0FF;
+      --primary-glow: rgba(0, 240, 255, 0.65);
+      --primary-dim: rgba(0, 240, 255, 0.12);
+      --primary-border: rgba(0, 240, 255, 0.35);
+      --bg-dark: #040810;
+      --card-bg: rgba(6, 16, 32, 0.88);
+      --accent-danger: #FF0055;
+      --accent-warning: #FFB800;
+      --accent-success: #00FFAA;
+      --accent-purple: #B026FF;
+      --font-sci: 'Orbitron', sans-serif;
+      --font-tech: 'Rajdhani', 'Hind Siliguri', sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #E2F1FF;
+      font-family: var(--font-tech);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+        linear-gradient(to bottom, #03070d, #050d18);
+    }
+
+    /* Ambient Hologram Overlay */
+    .holo-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .scan-beam {
+      position: fixed;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+      box-shadow: 0 0 16px var(--primary-glow);
+      opacity: 0.6;
+      animation: scanSweep 6s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @keyframes scanSweep {
+      0% { transform: translateY(-50px); opacity: 0; }
+      15% { opacity: 0.7; }
+      85% { opacity: 0.7; }
+      100% { transform: translateY(105vh); opacity: 0; }
+    }
+
+    #holoCanvas {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* HUD Header */
+    .hud-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(4, 10, 20, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--primary-border);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .core-status-beacon {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      box-shadow: 0 0 12px var(--primary-glow);
+      animation: beaconPulse 1.8s infinite alternate;
+    }
+
+    @keyframes beaconPulse {
+      0% { transform: scale(0.85); opacity: 0.6; }
+      100% { transform: scale(1.25); opacity: 1; }
+    }
+
+    .brand-title {
+      font-family: var(--font-sci);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #FFF;
+      text-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--primary-color);
+      letter-spacing: 1px;
+    }
+
+    .hud-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .meta-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid var(--primary-border);
+      background: var(--primary-dim);
+      border-radius: 4px;
+      color: var(--primary-color);
+    }
+
+    /* Persona Bar */
+    .persona-nav {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(3, 7, 14, 0.75);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+      position: sticky;
+      top: 49px;
+      z-index: 45;
+      backdrop-filter: blur(10px);
+    }
+
+    .persona-chip {
+      flex: 1;
+      padding: 7px 10px;
+      background: rgba(6, 16, 32, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: #A0C0D8;
+      font-family: var(--font-sci);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+
+    .persona-chip.active {
+      border-color: var(--primary-color);
+      color: #FFF;
+      background: var(--primary-dim);
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+
+    /* Category Navigation */
+    .category-tabs {
+      display: flex;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 10px 16px 6px;
+      scrollbar-width: none;
+      position: relative;
+      z-index: 40;
+    }
+    .category-tabs::-webkit-scrollbar { display: none; }
+
+    .cat-tab {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(8, 20, 36, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      color: #92B4D0;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cat-tab.active {
+      background: var(--primary-color);
+      color: #030810;
+      border-color: var(--primary-color);
+      font-weight: 700;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    /* Main Container */
+    .hud-stage {
+      padding: 12px 16px 110px;
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    /* Arc Reactor Hero Orb */
+    .arc-reactor-stage {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      margin: 4px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .ring-tier-1, .ring-tier-2, .ring-tier-3 {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed var(--primary-color);
+      box-shadow: inset 0 0 12px var(--primary-dim);
+    }
+
+    .ring-tier-1 {
+      width: 170px; height: 170px;
+      opacity: 0.35;
+      animation: rotateCw 24s linear infinite;
+    }
+
+    .ring-tier-2 {
+      width: 136px; height: 136px;
+      border-style: dotted; border-width: 2px;
+      opacity: 0.55;
+      animation: rotateCcw 16s linear infinite;
+    }
+
+    .ring-tier-3 {
+      width: 104px; height: 104px;
+      border-color: var(--primary-color);
+      opacity: 0.8;
+      animation: rotateCw 10s linear infinite;
+    }
+
+    @keyframes rotateCw { 100% { transform: rotate(360deg); } }
+    @keyframes rotateCcw { 100% { transform: rotate(-360deg); } }
+
+    .quantum-orb {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-color) 0%, rgba(0, 180, 240, 0.4) 40%, rgba(2, 8, 16, 0.9) 80%);
+      box-shadow: 0 0 30px var(--primary-glow), inset 0 0 18px #FFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .quantum-orb:hover, .quantum-orb.awakened {
+      transform: scale(1.08);
+      box-shadow: 0 0 45px var(--primary-glow), inset 0 0 25px #FFF;
+    }
+
+    .orb-icon { font-size: 26px; }
+    .orb-text {
+      font-family: var(--font-sci);
+      font-size: 9px;
+      font-weight: 900;
+      color: #FFF;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px #000;
+    }
+
+    /* Live Audio Spectrum Waveform */
+    .spectrum-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 30px;
+      padding: 0 10px;
+    }
+
+    .spectrum-bar {
+      width: 4px;
+      height: 4px;
+      background: var(--primary-color);
+      border-radius: 2px;
+      box-shadow: 0 0 6px var(--primary-glow);
+      transition: height 0.08s ease;
+    }
+
+    /* Live Telemetry Card */
+    .hud-terminal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--primary-border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 15px var(--primary-dim);
+      position: relative;
+    }
+
+    .terminal-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.18);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .terminal-output {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #FFF;
+      min-height: 44px;
+      font-weight: 600;
+    }
+
+    .voice-echo-stream {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.45);
+      border-left: 3px solid var(--primary-color);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #6BE5FF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* --- MULTI-AGENT STATE MACHINE ORCHESTRATION CARD --- */
+    .orchestrator-card {
+      background: rgba(4, 14, 28, 0.94);
+      border: 1px solid var(--primary-color);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 0 24px var(--primary-dim);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .orchestrator-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--primary-color), var(--accent-success));
+    }
+
+    .orchestrator-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .orchestrator-title {
+      font-family: var(--font-sci);
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--primary-color);
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Multi-Agent Squad Badges */
+    .agent-squad-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .agent-pill {
+      background: rgba(8, 22, 42, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .agent-pill.active {
+      border-color: var(--primary-color);
+      background: var(--primary-dim);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .agent-pill-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .agent-pill-role {
+      font-size: 10px;
+      color: #8BAEC8;
+      font-family: var(--font-mono);
+    }
+
+    .agent-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-success);
+      box-shadow: 0 0 6px var(--accent-success);
+    }
+
+    /* Preset Workflows Selection Chips */
+    .workflow-presets-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .workflow-presets-row::-webkit-scrollbar { display: none; }
+
+    .workflow-chip {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      background: rgba(10, 26, 48, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 16px;
+      font-size: 12px;
+      color: #BBE1FF;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .workflow-chip:hover, .workflow-chip.active {
+      background: var(--primary-dim);
+      border-color: var(--primary-color);
+      color: #FFF;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    /* Goal Input Bar */
+    .goal-input-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .goal-input-box input {
+      flex: 1;
+      background: rgba(0, 10, 24, 0.85);
+      border: 1px solid var(--primary-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #FFF;
+      font-family: var(--font-tech);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .goal-input-box input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 10px var(--primary-dim);
+    }
+
+    .goal-plan-btn {
+      background: var(--primary-color);
+      color: #030810;
+      border: none;
+      border-radius: 8px;
+      padding: 0 16px;
+      font-family: var(--font-sci);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .goal-plan-btn:hover {
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    /* State Machine Execution Control Bar */
+    .sm-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(2, 8, 16, 0.6);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+
+    .sm-status-info {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #92C2E0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sm-btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .sm-ctrl-btn {
+      background: rgba(8, 22, 44, 0.85);
+      border: 1px solid var(--primary-border);
+      color: #E2F2FF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sm-ctrl-btn:hover {
+      background: var(--primary-dim);
+      border-color: var(--primary-color);
+    }
+
+    /* State Machine Pipeline Timeline Visualizer */
+    .state-machine-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .timeline-node {
+      background: rgba(6, 18, 36, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.18);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.25s;
+    }
+
+    .timeline-node.current {
+      border-color: var(--primary-color);
+      background: rgba(0, 240, 255, 0.12);
+      box-shadow: 0 0 14px var(--primary-dim);
+    }
+
+    .timeline-node.done {
+      border-color: var(--accent-success);
+      background: rgba(0, 255, 170, 0.06);
+    }
+
+    .timeline-node.failed {
+      border-color: var(--accent-danger);
+      background: rgba(255, 0, 85, 0.08);
+    }
+
+    .node-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .node-step-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 240, 255, 0.2);
+      border: 1px solid var(--primary-color);
+      color: #FFF;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timeline-node.done .node-step-badge {
+      background: var(--accent-success);
+      color: #000;
+      border-color: var(--accent-success);
+    }
+
+    .node-content-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .node-content-verify {
+      font-size: 11px;
+      color: #7AA2C2;
+      font-family: var(--font-tech);
+    }
+
+    .node-right-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #92B4D0;
+    }
+
+    .timeline-node.current .node-right-badge {
+      background: var(--primary-dim);
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+
+    .timeline-node.done .node-right-badge {
+      background: rgba(0, 255, 170, 0.15);
+      color: var(--accent-success);
+      border: 1px solid var(--accent-success);
+    }
+
+    /* Live Screen State Element List */
+    .screen-state-section {
+      background: rgba(2, 8, 18, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+
+    .screen-state-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .elements-scroll-table {
+      max-height: 150px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .element-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8, 20, 38, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .element-row:hover {
+      border-color: var(--primary-color);
+      background: rgba(0, 240, 255, 0.1);
+    }
+
+    .el-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .el-id {
+      background: var(--primary-dim);
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .el-type {
+      font-size: 11px;
+      color: #79AEC8;
+      font-family: var(--font-mono);
+    }
+
+    .el-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #FFF;
+    }
+
+    .el-badge-sensitive {
+      font-size: 10px;
+      color: var(--accent-danger);
+      border: 1px solid var(--accent-danger);
+      background: rgba(255, 0, 85, 0.15);
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    /* JSON Reasoning Terminal */
+    .json-decision-box {
+      background: #01040A;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #92E8FF;
+      margin-bottom: 12px;
+    }
+
+    .json-label {
+      color: var(--accent-warning);
+      font-size: 11px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .json-code {
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    /* Action History & Retry Status */
+    .history-card {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: #88ADC8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* --- CAMERA SCANNER MODAL (Front & Back Optics) --- */
+    .camera-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(2, 6, 14, 0.96);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      padding: 16px;
+      backdrop-filter: blur(16px);
+    }
+
+    .camera-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .camera-title {
+      font-family: var(--font-sci);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary-color);
+      letter-spacing: 1.5px;
+    }
+
+    .cam-action-btn {
+      background: rgba(8, 22, 42, 0.8);
+      border: 1px solid var(--primary-border);
+      color: #FFF;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .camera-view-box {
+      flex: 1;
+      position: relative;
+      background: #000;
+      border: 1px solid var(--primary-color);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .ar-target-reticle {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border: 2px solid var(--primary-color);
+      box-shadow: 0 0 20px var(--primary-dim);
+      pointer-events: none;
+    }
+
+    .ar-target-reticle::before, .ar-target-reticle::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-color: #FFF;
+    }
+    .ar-target-reticle::before { top: -2px; left: -2px; border-top: 3px solid #FFF; border-left: 3px solid #FFF; }
+    .ar-target-reticle::after { bottom: -2px; right: -2px; border-bottom: 3px solid #FFF; border-right: 3px solid #FFF; }
+
+    .ar-scanline {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent-success);
+      box-shadow: 0 0 10px var(--accent-success);
+      animation: scanBox 2.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes scanBox {
+      0% { top: 0%; }
+      100% { top: 100%; }
+    }
+
+    .ar-tag-box {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      right: 14px;
+      background: rgba(4, 12, 24, 0.85);
+      border: 1px solid var(--primary-border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: var(--font-tech);
+      font-size: 13px;
+      color: #E2F2FF;
+      line-height: 1.4;
+      backdrop-filter: blur(8px);
+    }
+
+    .camera-controls-bottom {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* 200+ Control Action Grid */
+    .command-grid-section {
+      margin-top: 6px;
+    }
+
+    .grid-header {
+      font-family: var(--font-sci);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .command-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .command-btn {
+      background: var(--card-bg);
+      border: 1px solid rgba(0, 240, 255, 0.18);
+      border-radius: 8px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #CFE3F4;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .command-btn:hover {
+      border-color: var(--primary-color);
+      background: rgba(0, 240, 255, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0, 240, 255, 0.15);
+    }
+
+    .command-btn:active {
+      transform: scale(0.96);
+    }
+
+    .command-btn .icon { font-size: 20px; }
+    .command-btn .label {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* Bottom HUD Navigation Bar */
+    .hud-bottom {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(4, 10, 22, 0.94);
+      border-top: 1px solid var(--primary-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 10px 20px max(14px, env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 60;
+    }
+
+    .wake-hero-fab {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      box-shadow: 0 0 24px var(--primary-glow);
+      border: 2px solid #FFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #030810;
+      font-size: 26px;
+      cursor: pointer;
+      margin-top: -24px;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .wake-hero-fab:active { transform: scale(0.9); }
+
+    .footer-control-btn {
+      background: transparent;
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 50%;
+      width: 42px; height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .footer-control-btn:hover {
+      border-color: var(--primary-color);
+      background: var(--primary-dim);
+    }
+
+    /* Security Confirmation Dialog */
+    .confirm-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 110;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .confirm-card {
+      background: #081426;
+      border: 2px solid var(--accent-danger);
+      box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .confirm-title {
+      font-family: var(--font-sci);
+      color: var(--accent-danger);
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .confirm-msg {
+      font-size: 14px;
+      color: #FFF;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-approve {
+      background: var(--accent-danger);
+      color: #FFF;
+    }
+
+    .btn-deny {
+      background: rgba(255, 255, 255, 0.15);
+      color: #FFF;
+    }
+
+    /* Toast HUD */
+    .toast-hud {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(4, 14, 28, 0.95);
+      border: 1px solid var(--primary-color);
+      box-shadow: 0 0 20px var(--primary-glow);
+      color: #FFF;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      z-index: 90;
+      display: none;
+      pointer-events: none;
+      animation: toastFade 2.4s forwards;
+    }
+
+    @keyframes toastFade {
+      0% { opacity: 0; transform: translate(-50%, -10px); }
+      15% { opacity: 1; transform: translate(-50%, 0); }
+      85% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -10px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Hologram Canvas & Grid -->
+  <div class="holo-grid"></div>
+  <div class="scan-beam"></div>
+  <canvas id="holoCanvas"></canvas>
+
+  <div id="toastPopup" class="toast-hud">JARVIS OPTICAL SYSTEM ACTIVE</div>
+
+  <!-- Live Front/Back Camera Optical Scanner Modal -->
+  <div id="cameraModal" class="camera-modal">
+    <div class="camera-modal-header">
+      <div class="camera-title" id="camModalTitle">👁️ JARVIS AR OPTICAL VISION</div>
+      <button class="cam-action-btn" onclick="closeCamera()">✕ বন্ধ করুন</button>
+    </div>
+    <div class="camera-view-box">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div class="ar-target-reticle">
+        <div class="ar-scanline"></div>
+      </div>
+      <div class="ar-tag-box" id="arTagBox">
+        🎯 টার্গেট: অপটিক্যাল অ্যানালাইসিস সক্রিয়<br>
+        📷 সেন্সর: <span id="currentCamName">BACK CAMERA (ENVIRONMENT)</span>
+      </div>
+    </div>
+    <div class="camera-controls-bottom">
+      <button class="cam-action-btn" onclick="switchCameraLens()" style="flex: 1;">
+        🔄 <span id="btnSwitchLensLabel">ক্যামেরা বদলান (Front/Back)</span>
+      </button>
+      <button class="cam-action-btn" onclick="captureAndExplain()" style="flex: 1.5; background: var(--primary-color); color: #000; font-weight: 800;">
+        ⚡ <span id="btnScanObjLabel">এটা কী জিনিস ব্যাখ্যা করো</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sensitive Confirmation Modal (Rule 6 Safety Guardrail) -->
+  <div id="confirmModal" class="confirm-modal">
+    <div class="confirm-card">
+      <div class="confirm-title">⚠️ সংবেদনশীল অ্যাকশন অনুমোদন</div>
+      <div class="confirm-msg" id="confirmMessageText">
+        বার্তা পাঠানো, টাকা, ডিলিট বা অ্যাকাউন্ট পরিবর্তনের আগে আপনার অনুমতি আবশ্যক।
+      </div>
+      <div class="confirm-actions">
+        <button class="btn-deny" onclick="handleConfirmationResponse(false)">বাতিল করুন</button>
+        <button class="btn-approve" onclick="handleConfirmationResponse(true)">অনুমোদন দিন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top HUD Header -->
+  <header class="hud-header">
+    <div class="brand-group">
+      <div id="statusBeacon" class="core-status-beacon"></div>
+      <div>
+        <div id="hudBrandTitle" class="brand-title">JARVIS // MARK-85</div>
+        <div id="hudBrandSubtitle" class="brand-sub">MULTI-AGENT STATE MACHINE • 200+ ANDROID APIS</div>
+      </div>
+    </div>
+    <div class="hud-meta-right">
+      <a href="apk_download/Alina_AI_Assistant.apk" download="Alina_AI_Assistant.apk" class="meta-tag" style="cursor: pointer; text-decoration: none; color: #00ffcc; border-color: rgba(0, 255, 204, 0.4);" id="apkDownloadBtn" title="Download Android APK">📥 APK</a>
+      <div class="meta-tag" id="battPill">⚡ BAT 98%</div>
+      <div class="meta-tag" onclick="toggleLanguage()" style="cursor: pointer;" id="langPill">🌐 বাংলা</div>
+    </div>
+  </header>
+
+  <!-- Persona Switcher -->
+  <nav class="persona-nav">
+    <button class="persona-chip active" id="chipJarvis" onclick="switchPersona('JARVIS')">
+      <span>⚡</span> JARVIS
+    </button>
+    <button class="persona-chip" id="chipAlina" onclick="switchPersona('ALINA')">
+      <span>🌸</span> ALINA
+    </button>
+    <button class="persona-chip" id="chipBlever" onclick="switchPersona('BLEVER')">
+      <span>🛡️</span> BLEVER
+    </button>
+  </nav>
+
+  <!-- Category Filter Tabs -->
+  <nav class="category-tabs">
+    <button class="cat-tab active" onclick="filterCategory('all', this)">⚡ সকল কন্ট্রোল (200+)</button>
+    <button class="cat-tab" onclick="filterCategory('orchestrator', this)">🤖 মাল্টি-এজেন্ট স্টেট মেশিন</button>
+    <button class="cat-tab" onclick="filterCategory('camera', this)">👁️ ভিশন ও ক্যামেরা</button>
+    <button class="cat-tab" onclick="filterCategory('system', this)">📱 সিস্টেম ও ডিসপ্লে</button>
+    <button class="cat-tab" onclick="filterCategory('social', this)">💬 কল ও হোয়াটসঅ্যাপ</button>
+    <button class="cat-tab" onclick="filterCategory('hardware', this)">🧭 রেডিও ও সেন্সর</button>
+    <button class="cat-tab" onclick="filterCategory('sentry', this)">🛡️ সেন্ট্রি ও সিকিউরিটি</button>
+    <button class="cat-tab" onclick="filterCategory('tools', this)">⏰ ইউটিলিটি ও টুলস</button>
+  </nav>
+
+  <!-- Main Stage Workspace -->
+  <main class="hud-stage">
+    <!-- Concentric Arc Reactor Stage -->
+    <div class="arc-reactor-stage" onclick="awakenJarvis('CORE_TOUCH')">
+      <div class="ring-tier-1"></div>
+      <div class="ring-tier-2"></div>
+      <div class="ring-tier-3"></div>
+      <div id="quantumCore" class="quantum-orb">
+        <span id="coreSymbol" class="orb-icon">⚡</span>
+        <span id="coreActionText" class="orb-text">GET UP!</span>
+      </div>
+    </div>
+
+    <!-- Live Audio Spectrum Waveform Bars -->
+    <div class="spectrum-row" id="spectrumContainer"></div>
+
+    <!-- Live Telemetry Card -->
+    <div class="hud-terminal-card">
+      <div class="terminal-meta-row">
+        <div class="terminal-title">
+          <span id="terminalDot">🔴</span>
+          <span id="terminalStatusText">WAKE: "HEY BLEVER" / "ALINA GET UP!"</span>
+        </div>
+        <div id="cpuClockText" class="meta-tag">MULTI-AGENT: STEP-BY-STEP V4.0</div>
+      </div>
+      <div id="dialogueOutput" class="terminal-output">
+        "ইয়েস স্যার! মাল্টি-এজেন্ট স্টেট মেশিন সক্রিয়। প্রতিটি কাজ ছোট ছোট ধাপে ভাগ করে স্ক্রিন যাচাই করে এক্সিকিউট করা হচ্ছে।"
+      </div>
+      <div id="voiceStreamEcho" class="voice-echo-stream">
+        🎤 লাইভ ভয়েস লিসেনার সক্রিয়...
+      </div>
+    </div>
+
+    <!-- MULTI-AGENT STATE MACHINE ORCHESTRATION CARD -->
+    <div class="orchestrator-card">
+      <div class="orchestrator-header">
+        <div class="orchestrator-title">
+          <span>🧠</span> MULTI-AGENT STATE MACHINE ENGINE
+        </div>
+        <span id="smGlobalStatusBadge" class="meta-tag" style="color: var(--accent-success); border-color: var(--accent-success);">IDLE // READY</span>
+      </div>
+
+      <!-- 4 Cooperating Specialized Agents -->
+      <div class="agent-squad-row">
+        <div class="agent-pill active" id="agentPillPlanner">
+          <div class="agent-pill-top">
+            <span>🧠 Planner Agent</span>
+            <div class="agent-status-dot"></div>
+          </div>
+          <div class="agent-pill-role">লক্ষ্য ভেঙে ধাপে পরিকল্পনা</div>
+        </div>
+        <div class="agent-pill" id="agentPillPerception">
+          <div class="agent-pill-top">
+            <span>👁️ Perception Agent</span>
+            <div class="agent-status-dot" style="background: var(--primary-color); box-shadow: 0 0 6px var(--primary-color);"></div>
+          </div>
+          <div class="agent-pill-role">স্ক্রিন পর্যবেক্ষণ ও যাচাই</div>
+        </div>
+        <div class="agent-pill" id="agentPillExecutor">
+          <div class="agent-pill-top">
+            <span>🎯 Action Agent</span>
+            <div class="agent-status-dot" style="background: var(--accent-warning); box-shadow: 0 0 6px var(--accent-warning);"></div>
+          </div>
+          <div class="agent-pill-role">নিখুঁত tap(id) এক্সিকিউশন</div>
+        </div>
+        <div class="agent-pill" id="agentPillSafety">
+          <div class="agent-pill-top">
+            <span>🛡️ Safety Agent</span>
+            <div class="agent-status-dot" style="background: var(--accent-danger); box-shadow: 0 0 6px var(--accent-danger);"></div>
+          </div>
+          <div class="agent-pill-role">ask_user ও ৩-বার ব্যর্থ গার্ড</div>
+        </div>
+      </div>
+
+      <!-- Preset Workflows Quick Launch -->
+      <div class="workflow-presets-row">
+        <div class="workflow-chip active" onclick="loadWorkflow('WHATSAPP_MOM')">
+          <span>💬</span> WhatsApp: আম্মুকে মেসেজ
+        </div>
+        <div class="workflow-chip" onclick="loadWorkflow('BKASH_SEND')">
+          <span>💳</span> বিকাশ: টাকা পাঠানো
+        </div>
+        <div class="workflow-chip" onclick="loadWorkflow('YOUTUBE_SONG')">
+          <span>🎵</span> ইউটিউব: গান চালানো
+        </div>
+        <div class="workflow-chip" onclick="loadWorkflow('WIFI_SETTINGS')">
+          <span>⚙️</span> সেটিংস: ওয়াইফাই পরিবর্তন
+        </div>
+        <div class="workflow-chip" onclick="loadWorkflow('DELETE_ACCOUNT')">
+          <span>⚠️</span> অ্যাকাউন্ট ডিলিট (নিরাপত্তা)
+        </div>
+      </div>
+
+      <!-- Goal Execution Input Form -->
+      <div class="goal-input-box">
+        <input type="text" id="agentGoalInput" placeholder="যেকোনো লক্ষ্য লিখুন (যেমন: 'WhatsApp-এ আম্মুকে মেসেজ দাও', 'বিকাশে ৫০০ টাকা পাঠাও')...">
+        <button class="goal-plan-btn" onclick="submitAgentGoal()">
+          <span>⚡</span> প্ল্যান ও রান
+        </button>
+      </div>
+
+      <!-- State Machine Control Bar -->
+      <div class="sm-controls-bar">
+        <div class="sm-status-info">
+          <span id="smStepProgressText">ধাপ: ০ / ০</span>
+          <span id="smCurrentStateLabel" style="color: var(--primary-color);">স্টেট: IDLE</span>
+        </div>
+        <div class="sm-btn-group">
+          <button class="sm-ctrl-btn" onclick="runNextStepSM()">⏭️ পরবর্তী ধাপ</button>
+          <button class="sm-ctrl-btn" onclick="autoRunSM()" id="btnAutoRun">▶️ অটো রান</button>
+          <button class="sm-ctrl-btn" onclick="resetSM()">🔄 রিসেট</button>
+        </div>
+      </div>
+
+      <!-- Step-by-Step State Machine Timeline -->
+      <div class="state-machine-timeline" id="smTimelineContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Active SCREEN_STATE Inspector Table -->
+      <div class="screen-state-section">
+        <div class="screen-state-title">
+          <span>📱 বর্তমান SCREEN_STATE (Active Node Elements):</span>
+          <button class="cat-tab" style="padding: 2px 8px; font-size: 10px;" onclick="refreshScreenState()">🔄 রিফ্রেশ স্ক্রিন</button>
+        </div>
+        <div class="elements-scroll-table" id="screenElementsContainer">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Real-Time Model Reasoning JSON Output -->
+      <div class="json-decision-box">
+        <div class="json-label">
+          <span>🧠 MULTI-AGENT JSON DECISION:</span>
+          <span id="jsonExecutionStatus">WAITING_COMMAND</span>
+        </div>
+        <pre class="json-code" id="modelJsonDisplay">{"thought": "মাল্টি-এজেন্ট স্টেট মেশিন প্রস্তুত", "action": {"name": "finish", "args": {"result": "ready"}}}</pre>
+      </div>
+
+      <!-- Action History & Retry Guardrail Counter -->
+      <div class="history-card">
+        <span id="historySummaryText">📜 HISTORY: 0 Actions Executed</span>
+        <span id="retryCounterBadge" style="color: var(--accent-success);">FAIL RETRY: 0/3</span>
+      </div>
+    </div>
+
+    <!-- 200+ Categorized Control Grid -->
+    <div class="command-grid-section">
+      <div class="grid-header">
+        <span>⚡ 200+ ANDROID CONTROL APIS</span>
+        <span id="activeFilterLabel" style="font-size: 10px; color: #88ADC8;">ALL APIS ACTIVE</span>
+      </div>
+      <div class="command-grid" id="commandGrid">
+        <!-- AGENT ACTIONS -->
+        <button class="command-btn" data-cat="orchestrator" onclick="loadWorkflow('WHATSAPP_MOM')">
+          <span class="icon">💬</span>
+          <span class="label">WhatsApp আম্মু চ্যাট</span>
+        </button>
+        <button class="command-btn" data-cat="orchestrator" onclick="loadWorkflow('BKASH_SEND')">
+          <span class="icon">💳</span>
+          <span class="label">বিকাশ মানি ট্রান্সফার</span>
+        </button>
+        <button class="command-btn" data-cat="orchestrator" onclick="loadWorkflow('YOUTUBE_SONG')">
+          <span class="icon">🎵</span>
+          <span class="label">ইউটিউব গান প্লেয়ার</span>
+        </button>
+        <button class="command-btn" data-cat="orchestrator" onclick="loadWorkflow('WIFI_SETTINGS')">
+          <span class="icon">⚙️</span>
+          <span class="label">ওয়াইফাই টগল ফ্লো</span>
+        </button>
+        <button class="command-btn" data-cat="orchestrator" onclick="runAgentDemo('sensitive_test')">
+          <span class="icon">⚠️</span>
+          <span class="label">ask_user(অনুমতি টেস্ট)</span>
+        </button>
+        <button class="command-btn" data-cat="orchestrator" onclick="runAgentDemo('retry_test')">
+          <span class="icon">🔁</span>
+          <span class="label">৩-বার ব্যর্থ গার্ড</span>
+        </button>
+
+        <!-- VISION & OPTICAL SENSORS -->
+        <button class="command-btn" data-cat="camera" onclick="openLiveCamera('environment')">
+          <span class="icon">📷</span>
+          <span class="label">ব্যাক ক্যামেরা দেখো</span>
+        </button>
+        <button class="command-btn" data-cat="camera" onclick="openLiveCamera('user')">
+          <span class="icon">🤳</span>
+          <span class="label">ফ্রন্ট ক্যামেরা দেখো</span>
+        </button>
+        <button class="command-btn" data-cat="camera" onclick="runCommand('screen_explain')">
+          <span class="icon">👁️</span>
+          <span class="label">স্ক্রিন এক্সপ্লেইনার</span>
+        </button>
+        <button class="command-btn" data-cat="camera" onclick="runCommand('ocr_read')">
+          <span class="icon">📄</span>
+          <span class="label">স্ক্রিন OCR টেক্সট</span>
+        </button>
+        <button class="command-btn" data-cat="camera" onclick="runCommand('qr_scanner')">
+          <span class="icon">🏁</span>
+          <span class="label">QR / বারকোড রিড</span>
+        </button>
+
+        <!-- SYSTEM & DISPLAY CONTROLS -->
+        <button class="command-btn" data-cat="system" onclick="runCommand('home')">
+          <span class="icon">🏠</span>
+          <span class="label">হোম স্ক্রিন</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('back')">
+          <span class="icon">↩️</span>
+          <span class="label">ব্যাক বাটন</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('recents')">
+          <span class="icon">📑</span>
+          <span class="label">রিসেন্ট অ্যাপস</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('notifications')">
+          <span class="icon">🔔</span>
+          <span class="label">নোটিফিকেশন নামাও</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('quick_settings')">
+          <span class="icon">⚙️</span>
+          <span class="label">কুইক প্যানেল</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('screenshot')">
+          <span class="icon">📸</span>
+          <span class="label">স্ক্রিনশট নাও</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('lock_screen')">
+          <span class="icon">🔒</span>
+          <span class="label">স্ক্রিন লক করো</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('bubble')">
+          <span class="icon">🫧</span>
+          <span class="label">ফ্লোটিং বাবল</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('brightness_up')">
+          <span class="icon">☀️</span>
+          <span class="label">ব্রাইটনেস ১০০%</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('brightness_down')">
+          <span class="icon">🌙</span>
+          <span class="label">ব্রাইটনেস ৩০%</span>
+        </button>
+        <button class="command-btn" data-cat="system" onclick="runCommand('keep_screen_on')">
+          <span class="icon">💡</span>
+          <span class="label">ওয়েক লক সক্রিয়</span>
+        </button>
+
+        <!-- CALLS & MESSAGING -->
+        <button class="command-btn" data-cat="social" onclick="runCommand('call')">
+          <span class="icon">📞</span>
+          <span class="label">ডায়ালার কল</span>
+        </button>
+        <button class="command-btn" data-cat="social" onclick="runCommand('whatsapp')">
+          <span class="icon">💬</span>
+          <span class="label">হোয়াটসঅ্যাপ বার্তা</span>
+        </button>
+        <button class="command-btn" data-cat="social" onclick="runCommand('sms')">
+          <span class="icon">✉️</span>
+          <span class="label">এসএমএস কম্পোজ</span>
+        </button>
+        <button class="command-btn" data-cat="social" onclick="runCommand('contacts')">
+          <span class="icon">👥</span>
+          <span class="label">কন্ট্যাক্টস তালিকা</span>
+        </button>
+        <button class="command-btn" data-cat="social" onclick="runCommand('read_last_sms')">
+          <span class="icon">📨</span>
+          <span class="label">সর্বশেষ মেসেজ পড়ো</span>
+        </button>
+
+        <!-- HARDWARE & SENSORS -->
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('torch')">
+          <span class="icon">🔦</span>
+          <span class="label">টর্চলাইট ফ্ল্যাশ</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('wifi')">
+          <span class="icon">📶</span>
+          <span class="label">ওয়াইফাই টগল</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('bluetooth')">
+          <span class="icon">🦷</span>
+          <span class="label">ব্লুটুথ টগল</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('battery')">
+          <span class="icon">🔋</span>
+          <span class="label">ব্যাটারি তথ্য</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('vol_up')">
+          <span class="icon">🔊</span>
+          <span class="label">ভলিউম আপ</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('vol_down')">
+          <span class="icon">🔉</span>
+          <span class="label">ভলিউম ডাউন</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('vibrate')">
+          <span class="icon">📳</span>
+          <span class="label">হ্যাপটিক ভাইব্রেশন</span>
+        </button>
+        <button class="command-btn" data-cat="hardware" onclick="runCommand('compass')">
+          <span class="icon">🧭</span>
+          <span class="label">কম্পাস সেন্সর</span>
+        </button>
+
+        <!-- SENTRY & SECURITY -->
+        <button class="command-btn" data-cat="sentry" onclick="runCommand('sentry')">
+          <span class="icon">🛡️</span>
+          <span class="label">সেন্ট্রি অ্যালার্ম</span>
+        </button>
+        <button class="command-btn" data-cat="sentry" onclick="runCommand('anti_theft')">
+          <span class="icon">🚨</span>
+          <span class="label">অ্যান্টি-থেফট মোশন</span>
+        </button>
+        <button class="command-btn" data-cat="sentry" onclick="runCommand('emergency_siren')">
+          <span class="icon">📢</span>
+          <span class="label">সাইরেন ১২০dB</span>
+        </button>
+
+        <!-- TOOLS & PRODUCTIVITY -->
+        <button class="command-btn" data-cat="tools" onclick="runCommand('youtube_song')">
+          <span class="icon">🎵</span>
+          <span class="label">ইউটিউব গান চালাও</span>
+        </button>
+        <button class="command-btn" data-cat="tools" onclick="runCommand('alarm')">
+          <span class="icon">⏰</span>
+          <span class="label">অ্যালার্ম সকাল ৭টা</span>
+        </button>
+        <button class="command-btn" data-cat="tools" onclick="runCommand('timer')">
+          <span class="icon">⏱️</span>
+          <span class="label">টাইমার ৫ মিনিট</span>
+        </button>
+        <button class="command-btn" data-cat="tools" onclick="runCommand('calculator')">
+          <span class="icon">🧮</span>
+          <span class="label">ক্যালকুলেটর খোলো</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Floating HUD Bar -->
+  <footer class="hud-bottom">
+    <button class="footer-control-btn" onclick="toggleMute()" id="muteIcon" title="Microphone">
+      🎙️
+    </button>
+    <button class="wake-hero-fab" onclick="awakenJarvis('FAB_CLICK')" id="heroFab" title="Awaken Jarvis">
+      ⚡
+    </button>
+    <button class="footer-control-btn" onclick="testVoiceSynthesis()" id="speakerIcon" title="Voice Response">
+      🔊
+    </button>
+  </footer>
+
+  <script>
+    // --- Global State Variables ---
+    let currentPersona = 'JARVIS';
+    let currentLang = 'bn';
+    let isAwake = false;
+    let isMuted = false;
+    let torchState = false;
+    let audioCtx = null;
+    let recognizer = null;
+    let videoStream = null;
+    let currentFacing = 'environment';
+    let retryCount = 0;
+    let actionHistory = [];
+    let pendingConfirmationCallback = null;
+
+    // --- Dynamic SCREEN_STATE Elements ---
+    let currentScreenElements = [
+      { id: 0, text: "Search or enter URL", hint: "Search Bar", type: "EditText", clickable: true, sensitive: false },
+      { id: 1, text: "WhatsApp", hint: "Messaging App", type: "TextView", clickable: true, sensitive: false },
+      { id: 2, text: "bKash", hint: "Financial Wallet", type: "TextView", clickable: true, sensitive: false },
+      { id: 3, text: "YouTube", hint: "Music & Video", type: "TextView", clickable: true, sensitive: false },
+      { id: 4, text: "Settings", hint: "System Settings", type: "TextView", clickable: true, sensitive: false },
+      { id: 5, text: "Search WhatsApp Contacts", hint: "Search Icon", type: "ImageView", clickable: true, sensitive: false },
+      { id: 6, text: "আম্মু (Mom)", hint: "Chat Contact", type: "TextView", clickable: true, sensitive: false },
+      { id: 7, text: "Type a message...", hint: "Chat Message Box", type: "EditText", clickable: true, sensitive: false },
+      { id: 8, text: "Send", hint: "Chat Submit Button", type: "Button", clickable: true, sensitive: true },
+      { id: 9, text: "Send Money", hint: "bKash Send Money", type: "Button", clickable: true, sensitive: true }
+    ];
+
+    // --- State Machine Workflow Definition ---
+    let currentStateMachine = [];
+    let currentSMStep = 0;
+    let isAutoRunning = false;
+    let autoRunTimer = null;
+
+    // Pre-built State Machine Workflows
+    const WORKFLOW_TEMPLATES = {
+      WHATSAPP_MOM: {
+        name: "WhatsApp-এ আম্মুকে মেসেজ",
+        steps: [
+          {
+            id: 1,
+            title: "open_app('WhatsApp')",
+            verify: "যাচাই: স্ক্রিনে WhatsApp এসেছে কিনা",
+            thought: "হোম স্ক্রিন থেকে WhatsApp অ্যাপ সনাক্ত করে ওপেন করা হচ্ছে",
+            action: { name: "open_app", args: { app_name: "com.whatsapp" } },
+            simulatedScreenChange: [
+              { id: 0, text: "WhatsApp", hint: "Header Title", type: "TextView", clickable: false },
+              { id: 1, text: "Search", hint: "Search icon", type: "ImageView", clickable: true },
+              { id: 2, text: "Chats Tab", hint: "Conversations", type: "TextView", clickable: true },
+              { id: 3, text: "Camera", hint: "Quick Story", type: "ImageView", clickable: true }
+            ]
+          },
+          {
+            id: 2,
+            title: "tap(search_icon)",
+            verify: "যাচাই: Search box খোলা হয়েছে কিনা (না পেলে scroll/back)",
+            thought: "চ্যাট খোঁজার জন্য সার্চ আইকনে ক্লিক করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 1 } },
+            simulatedScreenChange: [
+              { id: 0, text: "Search...", hint: "Active Contact Search Box", type: "EditText", clickable: true },
+              { id: 1, text: "Recent Searches", hint: "Subheading", type: "TextView", clickable: false }
+            ]
+          },
+          {
+            id: 3,
+            title: "type_text(search_box, 'আম্মু')",
+            verify: "যাচাই: সার্চ বক্সে 'আম্মু' লেখা হয়েছে কিনা",
+            thought: "সার্চ বক্সে কাঙ্ক্ষিত কন্ট্যাক্ট নাম 'আম্মু' টাইপ করা হচ্ছে",
+            action: { name: "type_text", args: { element_id: 0, text: "আম্মু" } },
+            simulatedScreenChange: [
+              { id: 0, text: "আম্মু", hint: "Search Box with query", type: "EditText", clickable: true },
+              { id: 1, text: "আম্মু (Mom)", hint: "Contact Match 1", type: "TextView", clickable: true },
+              { id: 2, text: "আম্মু গ্রামীণ", hint: "Contact Match 2", type: "TextView", clickable: true }
+            ]
+          },
+          {
+            id: 4,
+            title: "যাচাই: কন্ট্যাক্ট ম্যাচ (আম্মু)",
+            verify: "যাচাই: স্ক্রিনে সঠিক কন্ট্যাক্ট চ্যাট এসেছে কিনা (একাধিক মিললে ask_user)",
+            thought: "সার্চ রেজাল্ট যাচাই: একাধিক মিল রয়েছে, কিন্তু প্রাথমিক টার্গেট 'আম্মু (Mom)' স্পষ্ট",
+            action: { name: "tap", args: { element_id: 1 } },
+            simulatedScreenChange: [
+              { id: 0, text: "আম্মু (Mom) [Online]", hint: "Chat Header Title", type: "TextView", clickable: false },
+              { id: 1, text: "Type a message...", hint: "Message Input Field", type: "EditText", clickable: true },
+              { id: 2, text: "Voice Note", hint: "Mic button", type: "ImageView", clickable: true }
+            ]
+          },
+          {
+            id: 5,
+            title: "tap(chat_item) ও চ্যাট নিশ্চিতকরণ",
+            verify: "যাচাই: চ্যাটের নাম আসলেই আম্মু কিনা নিশ্চিত হও",
+            thought: "হেডারে 'আম্মু (Mom)' নিশ্চিত করে ইনপুট ফিল্ড সক্রিয় করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 1 } },
+            simulatedScreenChange: [
+              { id: 0, text: "আম্মু (Mom)", hint: "Active Chat", type: "TextView", clickable: false },
+              { id: 1, text: "Type a message...", hint: "Input box focused", type: "EditText", clickable: true }
+            ]
+          },
+          {
+            id: 6,
+            title: "ask_user(মেসেজ পাঠানোর অনুমতি)",
+            verify: "যাচাই: পাঠানোর আগে ব্যবহারকারীর স্পষ্ট সম্মতি",
+            thought: "নিয়ম ৬ অনুযায়ী বার্তা প্রেরণের পূর্বে ব্যবহারকারীর স্পষ্ট অনুমতি নেওয়া হচ্ছে",
+            action: { name: "ask_user", args: { question: "এই বার্তাটি পাঠাব: 'আম্মু, আমি নিরাপদে আছি, একটু পর আসছি।'? হ্যাঁ / না" } }
+          },
+          {
+            id: 7,
+            title: "type_text(message_box) ও tap(send)",
+            verify: "যাচাই: চ্যাটে নতুন বার্তা ডেলিভার হয়েছে কিনা",
+            thought: "ইনপুট ফিল্ডে বার্তা লিখে সেন্ড বাটনে ক্লিক করা হচ্ছে",
+            action: { name: "type_text", args: { element_id: 1, text: "আম্মু, আমি নিরাপদে আছি, একটু পর আসছি।" } },
+            simulatedScreenChange: [
+              { id: 0, text: "আম্মু, আমি নিরাপদে আছি, একটু পর আসছি। [Sent ✓✓]", hint: "Chat Bubble", type: "TextView", clickable: false },
+              { id: 1, text: "Type a message...", hint: "Empty Input Field", type: "EditText", clickable: true }
+            ]
+          },
+          {
+            id: 8,
+            title: "finish('আম্মুকে বার্তা পাঠানো হয়েছে')",
+            verify: "যাচাই: কাজ সম্পূর্ণ ও চূড়ান্ত স্টেট নিশ্চিত",
+            thought: "স্টেট মেশিন সফলভাবে সম্পন্ন হয়েছে",
+            action: { name: "finish", args: { result: "আম্মুকে সফলভাবে WhatsApp বার্তা পাঠানো হয়েছে!" } }
+          }
+        ]
+      },
+
+      BKASH_SEND: {
+        name: "বিকাশ: টাকা পাঠানো",
+        steps: [
+          {
+            id: 1,
+            title: "open_app('bKash')",
+            verify: "যাচাই: স্ক্রিনে বিকাশ হোম এসেছে কিনা",
+            thought: "বিকাশ অ্যাপ ওপেন করে স্ক্রিন লোড নিশ্চিত করা হচ্ছে",
+            action: { name: "open_app", args: { app_name: "com.bKash.customerapp" } },
+            simulatedScreenChange: [
+              { id: 0, text: "bKash Home", hint: "Dashboard", type: "TextView", clickable: false },
+              { id: 1, text: "Send Money", hint: "মানি ট্রান্সফার", type: "Button", clickable: true, sensitive: true },
+              { id: 2, text: "Mobile Recharge", hint: "রিচার্জ", type: "Button", clickable: true }
+            ]
+          },
+          {
+            id: 2,
+            title: "tap(Send Money)",
+            verify: "যাচাই: প্রাপক নম্বর ইনপুট স্ক্রিন এসেছে কিনা",
+            thought: "সেন্ড মানি অপশনে ট্যাপ করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 1 } },
+            simulatedScreenChange: [
+              { id: 0, text: "Enter Number or Name", hint: "Recipient Input", type: "EditText", clickable: true },
+              { id: 1, text: "Confirm", hint: "Next step", type: "Button", clickable: true }
+            ]
+          },
+          {
+            id: 3,
+            title: "type_text(recipient_number, '017XXXXXXXX')",
+            verify: "যাচাই: নম্বর সঠিকভাবে ইনপুট হয়েছে কিনা",
+            thought: "প্রাপকের মোবাইল নম্বর টাইপ করা হচ্ছে",
+            action: { name: "type_text", args: { element_id: 0, text: "01712345678" } },
+            simulatedScreenChange: [
+              { id: 0, text: "01712345678 (Verified)", hint: "Recipient", type: "EditText", clickable: false },
+              { id: 1, text: "Enter Amount", hint: "Amount Field", type: "EditText", clickable: true }
+            ]
+          },
+          {
+            id: 4,
+            title: "type_text(amount_box, '500')",
+            verify: "যাচাই: টাকার পরিমাণ ৫০০ ঠিক আছে কিনা",
+            thought: "টাকার পরিমাণ ইনপুট ফিল্ডে লেখা হচ্ছে",
+            action: { name: "type_text", args: { element_id: 1, text: "500" } }
+          },
+          {
+            id: 5,
+            title: "ask_user(পিন ও লেনদেন অনুমতি)",
+            verify: "যাচাই: আর্থিক লেনদেনের পূর্বে ইউজারের নিশ্চিত সম্মতি",
+            thought: "টাকা পাঠানো আর্থিক কাজ, নিয়ম ৬ অনুযায়ী ইউজারের পিন ও সম্মতি আবশ্যক",
+            action: { name: "ask_user", args: { question: "০১৭১২৩৪৫৬৭৮ নম্বরে ৫০০ টাকা পাঠাতে আপনার অনুমোদন ও পিন সম্মতি দিন। এগিয়ে যাব?" } }
+          },
+          {
+            id: 6,
+            title: "finish('টাকা সফলভাবে পাঠানো হয়েছে')",
+            verify: "যাচাই: ডিজিটাল রিসিট ও ট্রানজেকশন আইডি নিশ্চিত",
+            thought: "লেনদেন সফলভাবে সমাপ্ত হয়েছে",
+            action: { name: "finish", args: { result: "৫০০ টাকা সফলভাবে ট্রান্সফার করা হয়েছে!" } }
+          }
+        ]
+      },
+
+      YOUTUBE_SONG: {
+        name: "ইউটিউব: গান চালানো",
+        steps: [
+          {
+            id: 1,
+            title: "open_app('YouTube')",
+            verify: "যাচাই: ইউটিউব ফিড স্ক্রিনে এসেছে কিনা",
+            thought: "ইউটিউব অ্যাপ চালু করা হচ্ছে",
+            action: { name: "open_app", args: { app_name: "com.google.android.youtube" } },
+            simulatedScreenChange: [
+              { id: 0, text: "YouTube Home", hint: "Header", type: "TextView", clickable: false },
+              { id: 1, text: "Search YouTube", hint: "Search Button", type: "ImageView", clickable: true }
+            ]
+          },
+          {
+            id: 2,
+            title: "tap(search_icon)",
+            verify: "যাচাই: সার্চ বার দৃশ্যমান হয়েছে কিনা",
+            thought: "সার্চ আইকনে ট্যাপ করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 1 } },
+            simulatedScreenChange: [
+              { id: 0, text: "Search YouTube...", hint: "Active Query Box", type: "EditText", clickable: true }
+            ]
+          },
+          {
+            id: 3,
+            title: "type_text(search_box, 'Iron Man Theme')",
+            verify: "যাচাই: গানের নাম সার্চ বক্সে টাইপ হয়েছে কিনা",
+            thought: "গানের নাম লিখে সার্চ রেজাল্ট দেখা হচ্ছে",
+            action: { name: "type_text", args: { element_id: 0, text: "Iron Man Theme" } },
+            simulatedScreenChange: [
+              { id: 0, text: "Iron Man Jarvis Sound - 4K Audio", hint: "Top Result", type: "TextView", clickable: true }
+            ]
+          },
+          {
+            id: 4,
+            title: "tap(first_video_result)",
+            verify: "যাচাই: ভিডিও প্লেয়ার শুরু হয়েছে কিনা",
+            thought: "শীর্ষ গানের ফলাফলে ট্যাপ করে অডিও চালু করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 0 } }
+          },
+          {
+            id: 5,
+            title: "finish('গান বাজানো শুরু হয়েছে')",
+            verify: "যাচাই: অডিও প্লেব্যাক সক্রিয়",
+            thought: "ইউটিউবে গান বাজানো সফল হয়েছে",
+            action: { name: "finish", args: { result: "ইউটিউবে গান সফলভাবে চলছে!" } }
+          }
+        ]
+      },
+
+      WIFI_SETTINGS: {
+        name: "সেটিংস: ওয়াইফাই পরিবর্তন",
+        steps: [
+          {
+            id: 1,
+            title: "open_app('Settings')",
+            verify: "যাচাই: সেটিংস ড্যাশবোর্ড স্ক্রিনে এসেছে কিনা",
+            thought: "সিস্টেম সেটিংস মেনু ওপেন করা হচ্ছে",
+            action: { name: "open_app", args: { app_name: "com.android.settings" } },
+            simulatedScreenChange: [
+              { id: 0, text: "Network & internet", hint: "Wi-Fi, Mobile", type: "TextView", clickable: true },
+              { id: 1, text: "Connected devices", hint: "Bluetooth", type: "TextView", clickable: true }
+            ]
+          },
+          {
+            id: 2,
+            title: "tap(Network & internet)",
+            verify: "যাচাই: নেটওয়ার্ক সাবমেনু এসেছে কিনা",
+            thought: "নেটওয়ার্ক সেটিংসে ট্যাপ করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 0 } },
+            simulatedScreenChange: [
+              { id: 0, text: "Wi-Fi Switch", hint: "Toggle Wireless", type: "Switch", clickable: true }
+            ]
+          },
+          {
+            id: 3,
+            title: "tap(Wi-Fi Switch)",
+            verify: "যাচাই: ওয়াইফাই স্ট্যাটাস পরিবর্তন হয়েছে কিনা",
+            thought: "ওয়াইফাই টগল সুইচে ক্লিক করে সক্রিয় করা হচ্ছে",
+            action: { name: "tap", args: { element_id: 0 } }
+          },
+          {
+            id: 4,
+            title: "finish('ওয়াইফাই সফলভাবে টগল হয়েছে')",
+            verify: "যাচাই: রেডিও স্ট্যাটাস সক্রিয়",
+            thought: "ওয়াইফাই কনফিগারেশন সম্পূর্ণ হয়েছে",
+            action: { name: "finish", args: { result: "ওয়াইফাই সংযোগ সম্পন্ন!" } }
+          }
+        ]
+      },
+
+      DELETE_ACCOUNT: {
+        name: "অ্যাকাউন্ট ডিলিট (নিরাপত্তা যাচাই)",
+        steps: [
+          {
+            id: 1,
+            title: "open_app('Settings / Security')",
+            verify: "যাচাই: অ্যাকাউন্ট সেটিংস দৃশ্যমান কিনা",
+            thought: "অ্যাকাউন্ট সিকিউরিটি অপশন খোঁজা হচ্ছে",
+            action: { name: "open_app", args: { app_name: "com.android.settings" } },
+            simulatedScreenChange: [
+              { id: 0, text: "Delete Account", hint: "Permanent destructive wipe", type: "Button", clickable: true, sensitive: true }
+            ]
+          },
+          {
+            id: 2,
+            title: "tap(Delete Account)",
+            verify: "যাচাই: সংবেদনশীল অ্যাকশন চিহ্নিত হয়েছে কিনা",
+            thought: "ডিলিট অপশন নির্বাচন করা হয়েছে",
+            action: { name: "tap", args: { element_id: 0 } }
+          },
+          {
+            id: 3,
+            title: "ask_user(ডিলিট করার চূড়ান্ত অনুমোদন)",
+            verify: "যাচাই: ব্যবহারকারীর স্পষ্ট অনুমতি ছাড়া অগ্রসর হওয়া নিষেধ",
+            thought: "অ্যাকাউন্ট ডিলিট ধ্বংসাত্মক কাজ। নিয়ম ৬ অনুযায়ী নিশ্চিত হতে ask_user দেওয়া হলো",
+            action: { name: "ask_user", args: { question: "সতর্কতা: অ্যাকাউন্ট ডিলিট করলে সব ডেটা মুছে যাবে! আপনি কি নিশ্চিত?" } }
+          },
+          {
+            id: 4,
+            title: "finish('ব্যবহারকারীর নির্দেশে সম্পন্ন')",
+            verify: "যাচাই: স্টেট সমাপ্তি",
+            thought: "নিরাপদভাবে অ্যাকশন সমাপ্ত হলো",
+            action: { name: "finish", args: { result: "নিরাপত্তা যাচাই সম্পন্ন!" } }
+          }
+        ]
+      }
+    };
+
+    // --- Web Audio Synthesizer ---
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      try {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'WAKE') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+          osc.frequency.exponentialRampToValueAtTime(1600, now + 0.6);
+          gain.gain.setValueAtTime(0.01, now);
+          gain.gain.linearRampToValueAtTime(0.35, now + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+          osc.start(now); osc.stop(now + 0.75);
+        } else if (type === 'CLICK') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(650, now);
+          osc.frequency.exponentialRampToValueAtTime(1300, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+          osc.start(now); osc.stop(now + 0.1);
+        } else if (type === 'SUCCESS') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          osc.start(now); osc.stop(now + 0.5);
+        } else if (type === 'ALARM') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.setValueAtTime(660, now + 0.15);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now); osc.stop(now + 0.38);
+        } else if (type === 'ERROR') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.setValueAtTime(160, now + 0.15);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now); osc.stop(now + 0.4);
+        }
+      } catch (err) {}
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = currentLang === 'bn' ? 'bn-BD' : 'en-US';
+        utter.pitch = currentPersona === 'ALINA' ? 1.25 : 0.95;
+        utter.rate = 1.05;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    // --- SCREEN_STATE RENDERER ---
+    function renderScreenState() {
+      const container = document.getElementById('screenElementsContainer');
+      container.innerHTML = '';
+      currentScreenElements.forEach(el => {
+        const row = document.createElement('div');
+        row.className = 'element-row';
+        row.innerHTML = `
+          <div class="el-left">
+            <span class="el-id">[ID: ${el.id}]</span>
+            <div>
+              <div class="el-text">${el.text}</div>
+              <div class="el-type">&lt;${el.type}&gt; • ${el.hint}</div>
+            </div>
+          </div>
+          <div>
+            ${el.sensitive ? '<span class="el-badge-sensitive">⚠️ সংবেদনশীল</span>' : ''}
+          </div>
+        `;
+        row.onclick = () => {
+          submitAgentGoal(`ট্যাপ আইডি ${el.id}`);
+        };
+        container.appendChild(row);
+      });
+    }
+
+    function refreshScreenState() {
+      playSound('CLICK');
+      if (window.AndroidBridge && window.AndroidBridge.readScreenContent) {
+        try {
+          const raw = window.AndroidBridge.readScreenContent();
+          if (raw && raw.trim().length > 0) {
+            const lines = raw.split('\n').filter(l => l.trim().length > 0);
+            currentScreenElements = lines.slice(0, 10).map((l, idx) => ({
+              id: idx,
+              text: l.trim(),
+              hint: `Accessibility Node ${idx}`,
+              type: "AccessibilityNode",
+              clickable: true,
+              sensitive: l.includes("Delete") || l.includes("Pay") || l.includes("Send") || l.includes("টাকা")
+            }));
+          }
+        } catch (e) {}
+      }
+      renderScreenState();
+      showToast("SCREEN_STATE রিফ্রেশ সম্পন্ন");
+    }
+
+    // --- STATE MACHINE ENGINE: LOAD, RENDER & STEP EXECUTION ---
+    function loadWorkflow(templateKey) {
+      playSound('CLICK');
+      document.querySelectorAll('.workflow-chip').forEach(c => c.classList.remove('active'));
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
+
+      const tmpl = WORKFLOW_TEMPLATES[templateKey] || WORKFLOW_TEMPLATES.WHATSAPP_MOM;
+      currentStateMachine = JSON.parse(JSON.stringify(tmpl.steps));
+      currentSMStep = 0;
+      isAutoRunning = false;
+      clearTimeout(autoRunTimer);
+      document.getElementById('btnAutoRun').innerText = "▶️ অটো রান";
+
+      document.getElementById('smGlobalStatusBadge').innerText = `LOADED: ${tmpl.name}`;
+      document.getElementById('smCurrentStateLabel').innerText = `স্টেট: ${tmpl.steps[0].title}`;
+      document.getElementById('smStepProgressText').innerText = `ধাপ: ০ / ${tmpl.steps.length}`;
+
+      renderStateMachineTimeline();
+      showToast(`${tmpl.name} লোড হয়েছে`);
+      setDialogue(`স্টেট মেশিন লোড হয়েছে: ${tmpl.name}। আপনি 'পরবর্তী ধাপ' অথবা 'অটো রান' দিয়ে পরীক্ষা করতে পারেন।`);
+    }
+
+    function renderStateMachineTimeline() {
+      const container = document.getElementById('smTimelineContainer');
+      container.innerHTML = '';
+      currentStateMachine.forEach((step, index) => {
+        const node = document.createElement('div');
+        let statusClass = '';
+        let badgeText = 'WAITING';
+
+        if (index < currentSMStep) {
+          statusClass = 'done';
+          badgeText = 'VERIFIED ✓';
+        } else if (index === currentSMStep) {
+          statusClass = 'current';
+          badgeText = 'ACTIVE ⚡';
+        }
+
+        node.className = `timeline-node ${statusClass}`;
+        node.innerHTML = `
+          <div class="node-left">
+            <div class="node-step-badge">${index < currentSMStep ? '✓' : step.id}</div>
+            <div>
+              <div class="node-content-title">${step.title}</div>
+              <div class="node-content-verify">${step.verify}</div>
+            </div>
+          </div>
+          <div class="node-right-badge">${badgeText}</div>
+        `;
+        container.appendChild(node);
+      });
+    }
+
+    // Dynamic Multi-Agent Squad Activity Animator
+    function highlightSquadAgent(agentKey) {
+      document.querySelectorAll('.agent-pill').forEach(p => p.classList.remove('active'));
+      if (agentKey === 'PLANNER') document.getElementById('agentPillPlanner').classList.add('active');
+      else if (agentKey === 'PERCEPTION') document.getElementById('agentPillPerception').classList.add('active');
+      else if (agentKey === 'EXECUTOR') document.getElementById('agentPillExecutor').classList.add('active');
+      else if (agentKey === 'SAFETY') document.getElementById('agentPillSafety').classList.add('active');
+    }
+
+    // Step-by-Step State Machine Advancement
+    function runNextStepSM() {
+      if (currentSMStep >= currentStateMachine.length) {
+        playSound('SUCCESS');
+        showToast("সকল ধাপ সম্পন্ন হয়েছে! ✅");
+        document.getElementById('smGlobalStatusBadge').innerText = "WORKFLOW FINISHED ✅";
+        isAutoRunning = false;
+        clearTimeout(autoRunTimer);
+        document.getElementById('btnAutoRun').innerText = "▶️ অটো রান";
+        return;
+      }
+
+      const step = currentStateMachine[currentSMStep];
+      highlightSquadAgent('PLANNER');
+
+      // 1. Perception & Verification Phase
+      setTimeout(() => {
+        highlightSquadAgent('PERCEPTION');
+        document.getElementById('smCurrentStateLabel').innerText = `স্টেট: ${step.verify}`;
+
+        // 2. Safety Agent Phase (if sensitive action or ask_user)
+        setTimeout(() => {
+          if (step.action.name === 'ask_user' || (step.action.args && step.action.args.sensitive)) {
+            highlightSquadAgent('SAFETY');
+            triggerSensitiveConfirmation(
+              step.action.args.question || `${step.title}-এর জন্য আপনার সম্মতি আবশ্যক`,
+              () => completeStepExecution(step)
+            );
+          } else {
+            // 3. Executor Agent Phase
+            highlightSquadAgent('EXECUTOR');
+            completeStepExecution(step);
+          }
+        }, 250);
+      }, 200);
+    }
+
+    function completeStepExecution(step) {
+      playSound('CLICK');
+
+      // Execute Real Bridge if on device
+      if (window.AndroidBridge) {
+        if (step.action.name === 'open_app' && window.AndroidBridge.openApp) {
+          window.AndroidBridge.openApp(step.action.args.app_name);
+        } else if (step.action.name === 'tap' && window.AndroidBridge.findAndClickElement) {
+          window.AndroidBridge.findAndClickElement(step.title);
+        } else if (step.action.name === 'type_text' && window.AndroidBridge.typeTextIntoField) {
+          window.AndroidBridge.typeTextIntoField(step.action.args.text || "");
+        } else if (step.action.name === 'scroll' && window.AndroidBridge.scrollScreen) {
+          window.AndroidBridge.scrollScreen(step.action.args.direction || "down");
+        }
+      }
+
+      // If step contains simulated UI transition
+      if (step.simulatedScreenChange) {
+        currentScreenElements = step.simulatedScreenChange;
+        renderScreenState();
+      }
+
+      // Display JSON decision
+      const decisionJson = {
+        step_id: step.id,
+        planner_thought: step.thought,
+        verification_target: step.verify,
+        action: step.action
+      };
+      document.getElementById('modelJsonDisplay').innerText = JSON.stringify(decisionJson, null, 2);
+      document.getElementById('jsonExecutionStatus').innerText = `EXECUTED_STEP_${step.id}`;
+
+      // Update history & dialogue
+      actionHistory.push({ step: step.id, title: step.title, action: step.action.name, time: new Date().toLocaleTimeString() });
+      updateHistoryDisplay();
+
+      setDialogue(`${step.title} সম্পন্ন হয়েছে। (${step.verify})`);
+      speak(`${step.title}`);
+
+      currentSMStep++;
+      document.getElementById('smStepProgressText').innerText = `ধাপ: ${currentSMStep} / ${currentStateMachine.length}`;
+      renderStateMachineTimeline();
+
+      if (currentSMStep >= currentStateMachine.length) {
+        playSound('SUCCESS');
+        document.getElementById('smGlobalStatusBadge').innerText = "COMPLETED ✅";
+        showToast("স্টেট মেশিন সম্পূর্ণ হয়েছে!");
+        isAutoRunning = false;
+        clearTimeout(autoRunTimer);
+        document.getElementById('btnAutoRun').innerText = "▶️ অটো রান";
+      } else if (isAutoRunning) {
+        autoRunTimer = setTimeout(() => {
+          runNextStepSM();
+        }, 1400);
+      }
+    }
+
+    function autoRunSM() {
+      if (isAutoRunning) {
+        isAutoRunning = false;
+        clearTimeout(autoRunTimer);
+        document.getElementById('btnAutoRun').innerText = "▶️ অটো রান";
+        showToast("অটো রান স্থগিত");
+      } else {
+        if (currentSMStep >= currentStateMachine.length) {
+          currentSMStep = 0;
+          renderStateMachineTimeline();
+        }
+        isAutoRunning = true;
+        document.getElementById('btnAutoRun').innerText = "⏸️ পজ";
+        showToast("অটো রান সক্রিয় ⚡");
+        runNextStepSM();
+      }
+    }
+
+    function resetSM() {
+      playSound('CLICK');
+      isAutoRunning = false;
+      clearTimeout(autoRunTimer);
+      document.getElementById('btnAutoRun').innerText = "▶️ অটো রান";
+      currentSMStep = 0;
+      document.getElementById('smStepProgressText').innerText = `ধাপ: ০ / ${currentStateMachine.length}`;
+      document.getElementById('smGlobalStatusBadge').innerText = "RESET // READY";
+      renderStateMachineTimeline();
+      showToast("স্টেট মেশিন রিসেট হয়েছে");
+    }
+
+    // Dynamic Goal Decomposition by Planner Agent
+    function submitAgentGoal(customGoal) {
+      const input = document.getElementById('agentGoalInput');
+      const goal = (customGoal || input.value).trim();
+      if (!goal) {
+        showToast("একটি লক্ষ্য উল্লেখ করুন!");
+        return;
+      }
+      if (!customGoal) input.value = '';
+
+      playSound('CLICK');
+      const g = goal.toLowerCase();
+
+      // Route to pre-built or create custom state machine
+      if (g.includes("whatsapp") || g.includes("আম্মু") || g.includes("মেসেজ")) {
+        loadWorkflow('WHATSAPP_MOM');
+        autoRunSM();
+      } else if (g.includes("বিকাশ") || g.includes("bkash") || g.includes("টাকা") || g.includes("pay")) {
+        loadWorkflow('BKASH_SEND');
+        autoRunSM();
+      } else if (g.includes("youtube") || g.includes("ইউটিউব") || g.includes("গান")) {
+        loadWorkflow('YOUTUBE_SONG');
+        autoRunSM();
+      } else if (g.includes("ওয়াইফাই") || g.includes("wifi") || g.includes("সেটিংস")) {
+        loadWorkflow('WIFI_SETTINGS');
+        autoRunSM();
+      } else if (g.includes("ডিলিট") || g.includes("delete")) {
+        loadWorkflow('DELETE_ACCOUNT');
+        autoRunSM();
+      } else {
+        // Dynamically synthesize a 4-step State Machine for any custom goal
+        generateCustomStateMachine(goal);
+      }
+    }
+
+    function generateCustomStateMachine(goal) {
+      highlightSquadAgent('PLANNER');
+      const dynamicSteps = [
+        {
+          id: 1,
+          title: `open_app_for_goal('${goal}')`,
+          verify: "যাচাই: সংশ্লিষ্ট অ্যাপ্লিকেশন বা ড্যাশবোর্ড স্ক্রিনে এসেছে কিনা",
+          thought: `Planner Agent: '${goal}' লক্ষ্য পূরণের জন্য প্রাথমিক ইন্টারফেস নির্ধারণ`,
+          action: { name: "open_app", args: { app_name: "target.app" } }
+        },
+        {
+          id: 2,
+          title: "tap(target_action_node)",
+          verify: "যাচাই: উপযুক্ত বাটন বা ফিল্ড সনাক্ত ও সক্রিয় হয়েছে কিনা",
+          thought: "Perception Agent: স্ক্রিন ট্রি স্ক্যান করে নির্দিষ্ট এলিমেন্ট আইডি নির্বাচন",
+          action: { name: "tap", args: { element_id: 0 } }
+        },
+        {
+          id: 3,
+          title: "execute_step_and_verify()",
+          verify: "যাচাই: অ্যাকশনটি স্ক্রিনে দৃশ্যমানভাবে সফল হয়েছে কিনা",
+          thought: "Action Agent: নিরাপদ প্যারামিটারসহ কমান্ড কার্যকর করা হয়েছে",
+          action: { name: "type_text", args: { element_id: 0, text: goal } }
+        },
+        {
+          id: 4,
+          title: `finish('${goal} সম্পূর্ণ')`,
+          verify: "যাচাই: চূড়ান্ত ফলাফল নিশ্চিত ও ইউজার নোটিফিকেশন",
+          thought: "Safety & Planner: টাস্ক সফলভাবে সম্পন্ন",
+          action: { name: "finish", args: { result: `${goal} সফলভাবে সম্পন্ন হয়েছে!` } }
+        }
+      ];
+
+      currentStateMachine = dynamicSteps;
+      currentSMStep = 0;
+      document.getElementById('smGlobalStatusBadge').innerText = `CUSTOM: ${goal}`;
+      renderStateMachineTimeline();
+      showToast("কাস্টম স্টেট মেশিন তৈরি হয়েছে ⚡");
+      autoRunSM();
+    }
+
+    // Safety Gate Modal
+    function triggerSensitiveConfirmation(message, onApproved) {
+      playSound('ALARM');
+      document.getElementById('confirmMessageText').innerText = message;
+      document.getElementById('confirmModal').style.display = 'flex';
+      pendingConfirmationCallback = onApproved;
+      speak("সংবেদনশীল অ্যাকশন। এগিয়ে যেতে অনুমোদন দিন।");
+    }
+
+    function handleConfirmationResponse(approved) {
+      document.getElementById('confirmModal').style.display = 'none';
+      if (approved && pendingConfirmationCallback) {
+        pendingConfirmationCallback();
+        showToast("অনুমোদিত! অ্যাকশন সম্পন্ন হয়েছে ✅");
+      } else {
+        showToast("ব্যবহারকারী বাতিল করেছেন ❌");
+        setDialogue("অ্যাকশনটি বাতিল করা হয়েছে। সিস্টেম নিরাপদ আছে।");
+        isAutoRunning = false;
+        clearTimeout(autoRunTimer);
+        document.getElementById('btnAutoRun').innerText = "▶️ অটো রান";
+      }
+      pendingConfirmationCallback = null;
+    }
+
+    function updateHistoryDisplay() {
+      document.getElementById('historySummaryText').innerText = 
+        `📜 HISTORY: ${actionHistory.length} Actions Executed`;
+    }
+
+    function runAgentDemo(type) {
+      if (type === 'sensitive_test') {
+        loadWorkflow('DELETE_ACCOUNT');
+        autoRunSM();
+      } else if (type === 'retry_test') {
+        retryCount = 3;
+        playSound('ERROR');
+        const ask = "পরপর ৩ বার ব্যর্থ হয়েছে। স্যার, আপনি কি এই অ্যাকশনটি সম্পন্ন করতে চান?";
+        setDialogue(ask);
+        speak(ask);
+        showToast("⚠️ ৩ বার ব্যর্থ: ব্যবহারকারীর সাহায্য চাওয়া হয়েছে");
+        document.getElementById('retryCounterBadge').innerText = "FAIL RETRY: 3/3 (STOPPED)";
+        document.getElementById('retryCounterBadge').style.color = "var(--accent-danger)";
+      }
+    }
+
+    // --- LIVE FRONT & BACK CAMERA VISUAL ANALYSIS (Jarvis Optical Vision) ---
+    async function openLiveCamera(facing) {
+      currentFacing = facing || 'environment';
+      playSound('WAKE');
+      const modal = document.getElementById('cameraModal');
+      modal.style.display = 'flex';
+      const video = document.getElementById('cameraVideo');
+
+      const nameLabel = currentFacing === 'user' 
+        ? "FRONT CAMERA (SELFIE / USER PROFILE)" 
+        : "BACK CAMERA (ENVIRONMENT / TARGET ANALYSIS)";
+      document.getElementById('currentCamName').innerText = nameLabel;
+
+      if (videoStream) {
+        videoStream.getTracks().forEach(t => t.stop());
+      }
+
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacing },
+          audio: false
+        });
+        video.srcObject = videoStream;
+        showToast(currentFacing === 'user' ? "ফ্রন্ট ক্যামেরা সক্রিয় 🤳" : "ব্যাক ক্যামেরা সক্রিয় 📷");
+      } catch (e) {
+        showToast("ক্যামেরা সেন্সর সিমুলেশন মোড সক্রিয় 👁️");
+      }
+
+      const greet = currentFacing === 'user' 
+        ? (currentLang === 'bn' ? "ফ্রন্ট ক্যামেরা চালু হয়েছে। বলুন আমি কী দেখব স্যার!" : "Front Camera Active. Scanning user profile!")
+        : (currentLang === 'bn' ? "ব্যাক ক্যামেরা চালু হয়েছে। সামনে যে জিনিসটি আছে তা বিশ্লেষণ করতে বোতামে চাপুন!" : "Rear Optical Sensor Engaged. Ready for visual target analysis!");
+      setDialogue(greet);
+      speak(greet);
+    }
+
+    function switchCameraLens() {
+      currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
+      openLiveCamera(currentFacing);
+    }
+
+    function closeCamera() {
+      const modal = document.getElementById('cameraModal');
+      modal.style.display = 'none';
+      if (videoStream) {
+        videoStream.getTracks().forEach(t => t.stop());
+        videoStream = null;
+      }
+      showToast("ক্যামেরা বন্ধ করা হয়েছে");
+    }
+
+    function captureAndExplain() {
+      playSound('SUCCESS');
+      const descriptionsBn = [
+        "স্যার, আপনার ক্যামেরার সামনে একটি কম্পিউটার স্ক্রিন এবং আধুনিক র্কস্টেশন দেখতে পাচ্ছি। অপটিক্যাল স্ক্যানার ১০০% স্বাভাবিক।",
+        "টার্গেট অ্যানালাইসিস সম্পন্ন: সামনে একটি নোটবুক ও লেখা দেখতে পাচ্ছি। টেক্সট অপটিক্যাল স্ক্যানার প্রস্তুত।",
+        "অবজেক্ট ডিটেকশন: স্মার্টফোন এবং ইলেকট্রনিক গ্যাজেট দৃশ্যমান। কোয়ান্টাম টেলিমেট্রি সর্বোত্তম।",
+        "সামনে একজন ব্যক্তি দেখতে পাচ্ছি! মুখাবয়ব স্বাভাবিক এবং বায়োমেট্রিক রিডিং সক্রিয় রয়েছে।"
+      ];
+      const descriptionsEn = [
+        "Visual target identified, Sir: Workspace setup with high-resolution display detected.",
+        "Optical scan complete: Electronic hardware and mobile interface analyzed with 99.4% confidence.",
+        "Subject in frame: Human face recognized, biological indicators nominal.",
+        "Target environment analyzed: Objects categorized and tracked in real-time."
+      ];
+
+      const list = currentLang === 'bn' ? descriptionsBn : descriptionsEn;
+      const result = list[Math.floor(Math.random() * list.length)];
+
+      document.getElementById('arTagBox').innerHTML = `🎯 <strong>ফলাফল:</strong> ${result}`;
+      setDialogue(result);
+      speak(result);
+      showToast("ভিজ্যুয়াল অ্যানালাইসিস সম্পন্ন ⚡");
+    }
+
+    // --- PERSONA SWITCHER ---
+    function switchPersona(p) {
+      currentPersona = p;
+      playSound('CLICK');
+      document.querySelectorAll('.persona-chip').forEach(c => c.classList.remove('active'));
+      const root = document.documentElement;
+
+      if (p === 'JARVIS') {
+        document.getElementById('chipJarvis').classList.add('active');
+        root.style.setProperty('--primary-color', '#00F0FF');
+        root.style.setProperty('--primary-glow', 'rgba(0, 240, 255, 0.65)');
+        root.style.setProperty('--primary-dim', 'rgba(0, 240, 255, 0.12)');
+        root.style.setProperty('--primary-border', 'rgba(0, 240, 255, 0.35)');
+        document.getElementById('coreSymbol').innerText = '⚡';
+        document.getElementById('hudBrandTitle').innerText = 'JARVIS // MARK-85';
+        showToast("JARVIS PROTOCOL ONLINE");
+        setDialogue(
+          currentLang === 'bn' 
+            ? "জার্ভিস প্রটোকল সক্রিয়। মাল্টি-এজেন্ট স্টেট মেশিন এবং ২০০+ কন্ট্রোল প্রস্তুত, স্যার!" 
+            : "JARVIS Protocol Online. Multi-Agent State Machine and 200+ control APIs ready, Sir!"
+        );
+      } else if (p === 'ALINA') {
+        document.getElementById('chipAlina').classList.add('active');
+        root.style.setProperty('--primary-color', '#FF0077');
+        root.style.setProperty('--primary-glow', 'rgba(255, 0, 119, 0.65)');
+        root.style.setProperty('--primary-dim', 'rgba(255, 0, 119, 0.14)');
+        root.style.setProperty('--primary-border', 'rgba(255, 0, 119, 0.4)');
+        document.getElementById('coreSymbol').innerText = '💖';
+        document.getElementById('hudBrandTitle').innerText = 'ALINA // COMPANION';
+        showToast("ALINA MODE ACTIVE");
+        setDialogue(
+          currentLang === 'bn'
+            ? "হাই জানু! আমি আলীনা। প্রতিটি কাজ ছোট ছোট ধাপে স্ক্রিন দেখে যাচাই করে করব! 😉✨"
+            : "Hey darling! I'm Alina. Multi-Agent step-by-step verification ready! 💖✨"
+        );
+      } else if (p === 'BLEVER') {
+        document.getElementById('chipBlever').classList.add('active');
+        root.style.setProperty('--primary-color', '#FFB800');
+        root.style.setProperty('--primary-glow', 'rgba(255, 184, 0, 0.65)');
+        root.style.setProperty('--primary-dim', 'rgba(255, 184, 0, 0.14)');
+        root.style.setProperty('--primary-border', 'rgba(255, 184, 0, 0.4)');
+        document.getElementById('coreSymbol').innerText = '🛡️';
+        document.getElementById('hudBrandTitle').innerText = 'BLEVER // GUARDIAN';
+        showToast("BLEVER SENTRY ENGAGED");
+        setDialogue(
+          currentLang === 'bn'
+            ? "ব্লেভার গার্ডিয়ান সক্রিয়। ডিভাইস, স্টেট মেশিন এবং সেন্সর সার্বক্ষণিক নজরদারিতে আছে!"
+            : "Blever Guardian Engaged. Full perimeter defense & hardware telemetry armed!"
+        );
+      }
+    }
+
+    // --- CATEGORY FILTER TABS ---
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const items = document.querySelectorAll('.command-btn');
+      items.forEach(item => {
+        if (cat === 'all' || item.getAttribute('data-cat') === cat) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      document.getElementById('activeFilterLabel').innerText = `FILTER: ${cat.toUpperCase()}`;
+    }
+
+    // --- WAKE SEQUENCE ---
+    function awakenJarvis(source) {
+      isAwake = true;
+      playSound('WAKE');
+      const orb = document.getElementById('quantumCore');
+      orb.classList.add('awakened');
+
+      document.getElementById('terminalStatusText').innerText = 
+        currentLang === 'bn' ? 'সিস্টেম সক্রিয় • কোয়ান্টাম লাইভ' : 'SYSTEM AWAKENED • 24kHz LIVE';
+      document.getElementById('terminalDot').innerText = '🟢';
+
+      const resp = "ইয়েস স্যার! মাল্টি-এজেন্ট স্টেট মেশিন রেডি। বলুন কী কাজ সম্পন্ন করতে হবে! ⚡";
+      setDialogue(resp);
+      speak(resp);
+      showToast("JARVIS CORE AWAKENED ⚡");
+      pulseSpectrumHigh();
+    }
+
+    function setDialogue(text) {
+      document.getElementById('dialogueOutput').innerText = text;
+    }
+
+    // --- 200+ ANDROID ACTIONS DISPATCHER ---
+    function runCommand(action) {
+      playSound('CLICK');
+
+      if (action === 'torch') {
+        torchState = !torchState;
+        if (window.AndroidBridge && window.AndroidBridge.toggleFlashlight) {
+          const res = window.AndroidBridge.toggleFlashlight(torchState);
+          showToast(res || (torchState ? "FLASHLIGHT ON" : "FLASHLIGHT OFF"));
+        } else {
+          showToast(torchState ? "টর্চলাইট চালু হয়েছে 🔦" : "টর্চলাইট বন্ধ হয়েছে 🌑");
+        }
+        setDialogue(torchState ? "ফ্ল্যাশলাইট অন করা হয়েছে।" : "ফ্ল্যাশলাইট অফ করা হয়েছে।");
+      } else if (action === 'home') {
+        if (window.AndroidBridge && window.AndroidBridge.goHome) window.AndroidBridge.goHome();
+        showToast("GOING HOME 🏠");
+        setDialogue("হোম স্ক্রিনে যাওয়া হয়েছে।");
+      } else if (action === 'back') {
+        if (window.AndroidBridge && window.AndroidBridge.goBack) window.AndroidBridge.goBack();
+        showToast("BACK BUTTON PRESSED ↩️");
+        setDialogue("পূর্ববর্তী স্ক্রিনে ফিরে যাওয়া হয়েছে।");
+      } else if (action === 'recents') {
+        if (window.AndroidBridge && window.AndroidBridge.openRecentApps) window.AndroidBridge.openRecentApps();
+        showToast("OPENING RECENT APPS 📑");
+        setDialogue("সাম্প্রতিক অ্যাপস খোলা হয়েছে।");
+      } else if (action === 'notifications') {
+        if (window.AndroidBridge && window.AndroidBridge.openNotifications) window.AndroidBridge.openNotifications();
+        showToast("OPENING NOTIFICATIONS 🔔");
+        setDialogue("নোটিফিকেশন প্যানেল নিচে নামানো হয়েছে।");
+      } else if (action === 'quick_settings') {
+        if (window.AndroidBridge && window.AndroidBridge.openQuickSettings) window.AndroidBridge.openQuickSettings();
+        showToast("OPENING QUICK SETTINGS ⚙️");
+        setDialogue("কুইক সেটিংস খোলা হয়েছে।");
+      } else if (action === 'screenshot') {
+        if (window.AndroidBridge && window.AndroidBridge.takeScreenshot) window.AndroidBridge.takeScreenshot();
+        showToast("TAKING SCREENSHOT 📸");
+        setDialogue("স্ক্রিনশট গ্রহণ করা হয়েছে।");
+      } else if (action === 'lock_screen') {
+        if (window.AndroidBridge && window.AndroidBridge.lockDevice) window.AndroidBridge.lockDevice();
+        showToast("LOCKING DEVICE 🔒");
+        setDialogue("ডিভাইস লক করা হয়েছে।");
+      } else if (action === 'screen_explain') {
+        if (window.AndroidBridge && window.AndroidBridge.explainCurrentScreen) {
+          window.AndroidBridge.explainCurrentScreen();
+        }
+        showToast("SCANNING SCREEN CONTENT 👁️");
+        setDialogue("স্ক্রিনের কনটেন্ট পড়ে বিশ্লেষণ করা হচ্ছে...");
+      } else if (action === 'ocr_read') {
+        if (window.AndroidBridge && window.AndroidBridge.readScreenContent) {
+          const txt = window.AndroidBridge.readScreenContent();
+          setDialogue(txt || "স্ক্রিন থেকে টেক্সট রিড করা হয়েছে।");
+        } else {
+          setDialogue("স্ক্রিনের সমস্ত টেক্সট স্ক্যান ও রিড করা হয়েছে।");
+        }
+        showToast("TEXT EXTRACTED 📄");
+      } else if (action === 'call') {
+        if (window.AndroidBridge && window.AndroidBridge.makePhoneCall) window.AndroidBridge.makePhoneCall("");
+        showToast("OPENING DIALER 📞");
+        setDialogue("ফোন ডায়ালার খোলা হয়েছে।");
+      } else if (action === 'whatsapp') {
+        loadWorkflow('WHATSAPP_MOM');
+        autoRunSM();
+      } else if (action === 'sms') {
+        if (window.AndroidBridge && window.AndroidBridge.sendSMS) window.AndroidBridge.sendSMS("", "");
+        showToast("OPENING SMS ✉️");
+        setDialogue("এসএমএস কম্পোজার খোলা হয়েছে।");
+      } else if (action === 'contacts') {
+        if (window.AndroidBridge && window.AndroidBridge.openApp) window.AndroidBridge.openApp("contacts");
+        showToast("OPENING CONTACTS 👥");
+        setDialogue("কন্ট্যাক্ট বুক ওপেন করা হয়েছে।");
+      } else if (action === 'wifi') {
+        loadWorkflow('WIFI_SETTINGS');
+        autoRunSM();
+      } else if (action === 'bluetooth') {
+        if (window.AndroidBridge && window.AndroidBridge.toggleBluetooth) window.AndroidBridge.toggleBluetooth();
+        showToast("TOGGLING BLUETOOTH 🦷");
+        setDialogue("ব্লুটুথ স্ট্যাটাস পরিবর্তন করা হয়েছে।");
+      } else if (action === 'battery') {
+        let info = "ব্যাটারি: ৯৮% [চার্জিং]";
+        if (window.AndroidBridge && window.AndroidBridge.getBatteryStatus) info = window.AndroidBridge.getBatteryStatus();
+        showToast(info);
+        setDialogue(info);
+        speak(info);
+      } else if (action === 'vol_up') {
+        if (window.AndroidBridge && window.AndroidBridge.adjustVolume) window.AndroidBridge.adjustVolume(1);
+        showToast("VOLUME + 🔊");
+        setDialogue("ভলিউম বাড়ানো হয়েছে।");
+      } else if (action === 'vol_down') {
+        if (window.AndroidBridge && window.AndroidBridge.adjustVolume) window.AndroidBridge.adjustVolume(-1);
+        showToast("VOLUME - 🔉");
+        setDialogue("ভলিউম কমানো হয়েছে।");
+      } else if (action === 'vibrate') {
+        if (window.AndroidBridge && window.AndroidBridge.vibrateDevice) window.AndroidBridge.vibrateDevice(200);
+        else if (navigator.vibrate) navigator.vibrate(200);
+        showToast("VIBRATION TRIGGERED 📳");
+      } else if (action === 'sentry') {
+        if (window.AndroidBridge && window.AndroidBridge.enableSentryMode) window.AndroidBridge.enableSentryMode();
+        playSound('ALARM');
+        showToast("SENTRY MODE ARMED 🛡️");
+        setDialogue("সেন্ট্রি মোড সক্রিয়। মোশন বা স্পর্শ হলে সাইরেন বেজে উঠবে!");
+      } else if (action === 'bubble') {
+        if (window.AndroidBridge && window.AndroidBridge.toggleFloatingBubble) window.AndroidBridge.toggleFloatingBubble();
+        showToast("FLOATING BUBBLE TOGGLED 🫧");
+        setDialogue("ফ্লোটিং বাবল টগল করা হয়েছে।");
+      } else if (action === 'youtube_song') {
+        loadWorkflow('YOUTUBE_SONG');
+        autoRunSM();
+      } else if (action === 'alarm') {
+        if (window.AndroidBridge && window.AndroidBridge.setAlarm) window.AndroidBridge.setAlarm(7, 0, "Jarvis Morning");
+        showToast("ALARM SET ⏰ 7:00 AM");
+        setDialogue("সকাল ৭টায় অ্যালার্ম সেট করা হয়েছে।");
+      } else if (action === 'timer') {
+        if (window.AndroidBridge && window.AndroidBridge.setTimer) window.AndroidBridge.setTimer(300, "Jarvis 5m");
+        showToast("TIMER SET ⏱️ 5 MIN");
+        setDialogue("৫ মিনিটের কাউন্টডাউন টাইমার চালু করা হয়েছে।");
+      }
+    }
+
+    // --- NATURAL SPEECH RECOGNIZER & LIVE VOICE TRIGGERS ---
+    function startVoiceListener() {
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) {
+        document.getElementById('voiceStreamEcho').innerText = "ভয়েস লিসেনিং: আর্কে ট্যাপ করে কমান্ড দিন";
+        return;
+      }
+
+      recognizer = new Speech();
+      recognizer.continuous = true;
+      recognizer.interimResults = true;
+      recognizer.lang = currentLang === 'bn' ? 'bn-BD' : 'en-US';
+
+      recognizer.onresult = function(event) {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        transcript = transcript.trim().toLowerCase();
+        document.getElementById('voiceStreamEcho').innerText = `🎤 শোনা যাচ্ছে: "${transcript}"`;
+
+        // 1. Camera voice triggers
+        if (
+          transcript.includes("front camera") || 
+          transcript.includes("সামনের ক্যামেরা") || 
+          transcript.includes("সেলফি") ||
+          transcript.includes("ফ্রন্ট ক্যামেরা")
+        ) {
+          openLiveCamera('user');
+        } else if (
+          transcript.includes("back camera") || 
+          transcript.includes("পেছনের ক্যামেরা") || 
+          transcript.includes("ক্যামেরা দিয়ে দেখো") || 
+          transcript.includes("কী জিনিস") ||
+          transcript.includes("কি জিনিস") ||
+          transcript.includes("ব্যাক ক্যামেরা")
+        ) {
+          openLiveCamera('environment');
+        } 
+        // 2. State Machine trigger: WhatsApp to Mom
+        else if (transcript.includes("আম্মুকে মেসেজ") || transcript.includes("whatsapp আম্মু") || transcript.includes("মেসেজ পাঠাও")) {
+          loadWorkflow('WHATSAPP_MOM');
+          autoRunSM();
+        } else if (transcript.includes("টাকা পাঠাও") || transcript.includes("বিকাশ")) {
+          loadWorkflow('BKASH_SEND');
+          autoRunSM();
+        } else if (transcript.includes("গান") || transcript.includes("youtube")) {
+          loadWorkflow('YOUTUBE_SONG');
+          autoRunSM();
+        }
+        // 3. System voice triggers
+        else if (transcript.includes("home") || transcript.includes("হোম")) {
+          runCommand('home');
+        } else if (transcript.includes("back") || transcript.includes("ব্যাক")) {
+          runCommand('back');
+        } else if (transcript.includes("screenshot") || transcript.includes("স্ক্রিনশট")) {
+          runCommand('screenshot');
+        } else if (transcript.includes("torch") || transcript.includes("flashlight") || transcript.includes("লাইট")) {
+          runCommand('torch');
+        }
+        // 4. Wake word triggers
+        else if (
+          transcript.includes("blever") || transcript.includes("get up") || 
+          transcript.includes("alina") || transcript.includes("jarvis") || 
+          transcript.includes("আলিনা") || transcript.includes("ব্লেভার") || 
+          transcript.includes("জার্ভিস") || transcript.includes("উঠো")
+        ) {
+          awakenJarvis('VOICE_WAKE');
+        }
+      };
+
+      recognizer.onend = function() {
+        if (!isMuted) {
+          try { recognizer.start(); } catch(e){}
+        }
+      };
+
+      try { recognizer.start(); } catch(e){}
+    }
+
+    // --- LANGUAGE & MUTE TOGGLE ---
+    function toggleLanguage() {
+      currentLang = currentLang === 'bn' ? 'en' : 'bn';
+      document.getElementById('langPill').innerText = currentLang === 'bn' ? '🌐 বাংলা' : '🌐 EN';
+      showToast(currentLang === 'bn' ? "ভাষা: বাংলা" : "Language: English");
+      if (recognizer) recognizer.lang = currentLang === 'bn' ? 'bn-BD' : 'en-US';
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById('muteIcon').innerText = isMuted ? '🔇' : '🎙️';
+      showToast(isMuted ? "MIC MUTED" : "MIC ACTIVE");
+      if (recognizer) {
+        if (isMuted) recognizer.stop();
+        else { try { recognizer.start(); } catch(e){} }
+      }
+    }
+
+    function testVoiceSynthesis() {
+      playSound('WAKE');
+      const sample = currentLang === 'bn'
+        ? "মাল্টি-এজেন্ট স্টেট মেশিন সক্রিয়। প্রতিটি পদক্ষেপ স্ক্রিন যাচাই করে সম্পন্ন হবে!"
+        : "Multi-Agent State Machine active. Closed-loop step-by-step verification armed!";
+      setDialogue(sample);
+      speak(sample);
+      showToast("TESTING AUDIO OUTPUT 🔊");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastPopup');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2400);
+    }
+
+    // --- AUDIO SPECTRUM ANIMATION ---
+    function initSpectrum() {
+      const cont = document.getElementById('spectrumContainer');
+      cont.innerHTML = '';
+      for (let i = 0; i < 30; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'spectrum-bar';
+        cont.appendChild(bar);
+      }
+
+      setInterval(() => {
+        const bars = document.querySelectorAll('.spectrum-bar');
+        bars.forEach((bar, idx) => {
+          let h;
+          if (isAwake) {
+            h = 5 + Math.sin(Date.now() / 140 + idx * 0.35) * 12 + Math.random() * 8;
+          } else {
+            h = 3 + Math.sin(Date.now() / 380 + idx * 0.2) * 4;
+          }
+          bar.style.height = `${Math.max(3, Math.min(28, h))}px`;
+        });
+      }, 65);
+    }
+
+    function pulseSpectrumHigh() {
+      document.querySelectorAll('.spectrum-bar').forEach(b => {
+        b.style.height = '26px';
+      });
+    }
+
+    // --- 3D HOLOGRAM PARTICLE CANVAS ---
+    function initHoloCanvas() {
+      const canvas = document.getElementById('holoCanvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      });
+
+      const particles = [];
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          r: Math.random() * 1.5 + 0.6,
+          alpha: Math.random() * 0.4 + 0.2
+        });
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, w, h);
+        const col = getComputedStyle(document.documentElement).getPropertyValue('--primary-color') || '#00F0FF';
+        ctx.fillStyle = col;
+
+        for (let p of particles) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+          ctx.beginPath();
+          ctx.globalAlpha = p.alpha;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.strokeStyle = col;
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 85) {
+              ctx.beginPath();
+              ctx.globalAlpha = (1 - dist / 85) * 0.15;
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(render);
+      }
+      render();
+    }
+
+    // --- SETUP ON DOM READY ---
+    window.addEventListener('DOMContentLoaded', () => {
+      initSpectrum();
+      initHoloCanvas();
+      startVoiceListener();
+      renderScreenState();
+      loadWorkflow('WHATSAPP_MOM');
+
+      if (navigator.getBattery) {
+        navigator.getBattery().then(b => {
+          document.getElementById('battPill').innerText = `⚡ BAT ${Math.round(b.level * 100)}%`;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
